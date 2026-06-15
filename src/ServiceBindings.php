@@ -21,6 +21,7 @@ trait ServiceBindings
 
         // Repository services...
         Contracts\JobRepository::class => Repositories\RedisJobRepository::class,
+        Contracts\LastAttemptExceptionRepository::class => Repositories\RedisLastAttemptExceptionRepository::class,
         Contracts\MasterSupervisorRepository::class => Repositories\RedisMasterSupervisorRepository::class,
         Contracts\MetricsRepository::class => Repositories\RedisMetricsRepository::class,
         Contracts\ProcessRepository::class => Repositories\RedisProcessRepository::class,

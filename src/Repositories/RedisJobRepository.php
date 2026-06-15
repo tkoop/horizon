@@ -28,7 +28,7 @@ class RedisJobRepository implements JobRepository
      */
     public $keys = [
         'id', 'connection', 'queue', 'name', 'status', 'payload',
-        'exception', 'context', 'failed_at', 'completed_at', 'retried_by',
+        'exception', 'last_attempt_exception', 'context', 'failed_at', 'completed_at', 'retried_by',
         'reserved_at', 'delay',
     ];
 
@@ -633,32 +633,37 @@ class RedisJobRepository implements JobRepository
      * @param  string  $connection
      * @param  string  $queue
      * @param  \Laravel\Horizon\JobPayload  $payload
+     * @param  string|null  $lastAttemptException
      * @return void
      */
-    public function failed($exception, $connection, $queue, JobPayload $payload)
+    public function failed($exception, $connection, $queue, JobPayload $payload, $lastAttemptException = null)
     {
-        $this->pipeline(function ($pipe) use ($exception, $connection, $queue, $payload) {
+        $this->pipeline(function ($pipe) use ($exception, $connection, $queue, $payload, $lastAttemptException) {
             $this->storeJobReference($pipe, 'failed_jobs', $payload);
             $this->storeJobReference($pipe, 'recent_failed_jobs', $payload);
             $this->removeJobReference($pipe, 'pending_jobs', $payload);
             $this->removeJobReference($pipe, 'completed_jobs', $payload);
             $this->removeJobReference($pipe, 'silenced_jobs', $payload);
 
-            $pipe->hmset(
-                $payload->id(), [
-                    'id' => $payload->id(),
-                    'connection' => $connection,
-                    'queue' => $queue,
-                    'name' => $payload->decoded['displayName'],
-                    'status' => 'failed',
-                    'payload' => $payload->value,
-                    'exception' => (string) $exception,
-                    'context' => method_exists($exception, 'context')
-                        ? json_encode($exception->context())
-                        : null,
-                    'failed_at' => str_replace(',', '.', microtime(true)),
-                ]
-            );
+            $attributes = [
+                'id' => $payload->id(),
+                'connection' => $connection,
+                'queue' => $queue,
+                'name' => $payload->decoded['displayName'],
+                'status' => 'failed',
+                'payload' => $payload->value,
+                'exception' => (string) $exception,
+                'context' => method_exists($exception, 'context')
+                    ? json_encode($exception->context())
+                    : null,
+                'failed_at' => str_replace(',', '.', microtime(true)),
+            ];
+
+            if ($lastAttemptException) {
+                $attributes['last_attempt_exception'] = $lastAttemptException;
+            }
+
+            $pipe->hmset($payload->id(), $attributes);
 
             $pipe->expireat(
                 $payload->id(), CarbonImmutable::now()->addMinutes($this->failedJobExpires)->getTimestamp()

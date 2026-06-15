@@ -180,6 +180,18 @@
             </div>
         </div>
 
+        <div class="card overflow-hidden mt-4" v-if="ready && job.last_attempt_exception">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h2 class="h6 m-0">Last Attempt Exception</h2>
+            </div>
+            <div class="card-body card-bg-secondary text-muted small border-bottom">
+                From the previous execution attempt before this job exhausted its retries.
+            </div>
+            <div>
+                <stack-trace :trace="job.last_attempt_exception.split('\n')"></stack-trace>
+            </div>
+        </div>
+
         <div class="card overflow-hidden mt-4" v-if="ready">
             <div class="card-header d-flex align-items-center justify-content-between">
                 <h2 class="h6 m-0">Exception Context</h2>

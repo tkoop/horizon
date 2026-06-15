@@ -30,6 +30,7 @@ trait EventMap
         Events\JobDeleted::class => [
             Listeners\MarkJobAsComplete::class,
             Listeners\UpdateJobMetrics::class,
+            Listeners\ForgetLastAttemptException::class,
         ],
 
         Events\JobsMigrated::class => [
@@ -38,6 +39,7 @@ trait EventMap
 
         \Illuminate\Queue\Events\JobExceptionOccurred::class => [
             Listeners\ForgetJobTimer::class,
+            Listeners\StoreLastAttemptException::class,
         ],
 
         \Illuminate\Queue\Events\JobFailed::class => [

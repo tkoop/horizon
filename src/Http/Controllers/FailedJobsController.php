@@ -118,6 +118,10 @@ class FailedJobsController extends Controller
 
         $job->exception = mb_convert_encoding($job->exception, 'UTF-8');
 
+        if (! empty($job->last_attempt_exception)) {
+            $job->last_attempt_exception = mb_convert_encoding($job->last_attempt_exception, 'UTF-8');
+        }
+
         $job->context = json_decode($job->context ?? '');
 
         $job->retried_by = collect(! is_null($job->retried_by) ? json_decode($job->retried_by) : [])

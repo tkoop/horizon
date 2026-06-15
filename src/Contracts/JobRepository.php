@@ -224,9 +224,10 @@ interface JobRepository
      * @param  string  $connection
      * @param  string  $queue
      * @param  \Laravel\Horizon\JobPayload  $payload
+     * @param  string|null  $lastAttemptException
      * @return void
      */
-    public function failed($exception, $connection, $queue, JobPayload $payload);
+    public function failed($exception, $connection, $queue, JobPayload $payload, $lastAttemptException = null);
 
     /**
      * Store the retry job ID on the original job record.
